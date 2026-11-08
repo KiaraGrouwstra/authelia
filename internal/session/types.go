@@ -42,6 +42,9 @@ type UserSession struct {
 	WebAuthn *WebAuthn
 	TOTP     *TOTP
 
+	// EUDIWallet holds the EU Digital Identity Wallet log-in in progress for this session.
+	EUDIWallet *EUDIWallet
+
 	// This boolean is set to true after identity verification and checked
 	// while doing the query actually updating the password.
 	PasswordResetUsername *string
@@ -84,4 +87,25 @@ type Elevation struct {
 	ID       int
 	RemoteIP net.IP
 	Expires  time.Time
+}
+
+// EUDIWallet holds the state of an EU Digital Identity Wallet log-in in progress. The same-device flow leaves the page
+// and comes back, so the session keeps what the page would otherwise send when the log-in finishes.
+type EUDIWallet struct {
+	// Binding is the random value that ties the presentation transaction to this browser session.
+	Binding string
+
+	// TransactionID identifies the presentation transaction.
+	TransactionID string
+
+	// Method is the log-in method: same_device.
+	Method string
+
+	TargetURL      string
+	RequestMethod  string
+	KeepMeLoggedIn bool
+	FlowID         string
+	Flow           string
+	SubFlow        string
+	UserCode       string
 }

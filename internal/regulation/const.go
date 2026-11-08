@@ -16,6 +16,9 @@ const (
 	// AuthTypePasskey is the string representing an auth log for first-factor passkey authentication.
 	AuthTypePasskey = "Passkey"
 
+	// AuthTypeWallet is the string representing an auth log for first-factor EU Digital Identity Wallet authentication.
+	AuthTypeWallet = "Wallet"
+
 	// AuthTypeTOTP is the string representing an auth log for second-factor authentication via TOTP.
 	AuthTypeTOTP = "TOTP"
 
