@@ -167,6 +167,26 @@ type Provider interface {
 		Implementation for Identity Verification (OTP).
 	*/
 
+	// SaveEUDIWalletTransaction creates an EU Digital Identity Wallet presentation transaction. It fails if the ID is in
+	// use.
+	SaveEUDIWalletTransaction(ctx context.Context, transaction model.EUDIWalletTransaction) (err error)
+
+	// LoadEUDIWalletTransaction loads an EU Digital Identity Wallet presentation transaction.
+	LoadEUDIWalletTransaction(ctx context.Context, id string) (transaction *model.EUDIWalletTransaction, err error)
+
+	// LoadEUDIWalletTransactionIDByKeyID finds the ID of the transaction with this response encryption key ID.
+	LoadEUDIWalletTransactionIDByKeyID(ctx context.Context, keyID string) (id string, err error)
+
+	// LoadEUDIWalletTransactionIDByResponseCodeHash finds the ID of the transaction with this response code hash.
+	LoadEUDIWalletTransactionIDByResponseCodeHash(ctx context.Context, hash string) (id string, err error)
+
+	// UpdateEUDIWalletTransaction replaces a transaction when its stored version is the expected version. It returns
+	// ErrNoRowsAffected when the stored version differs.
+	UpdateEUDIWalletTransaction(ctx context.Context, transaction model.EUDIWalletTransaction, expected int64) (err error)
+
+	// DeleteEUDIWalletTransactionsExpired deletes the transactions which expired before the given time.
+	DeleteEUDIWalletTransactionsExpired(ctx context.Context, before time.Time) (err error)
+
 	// SaveOneTimeCode saves a one-time code to the storage provider after generating the signature which is returned
 	// along with any error.
 	SaveOneTimeCode(ctx context.Context, code model.OneTimeCode) (signature string, err error)

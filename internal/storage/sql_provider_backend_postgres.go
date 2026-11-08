@@ -66,6 +66,13 @@ func NewPostgreSQLProvider(config *schema.Configuration, caCertPool *x509.CertPo
 	provider.sqlRevokeIdentityVerification = provider.db.Rebind(provider.sqlRevokeIdentityVerification)
 	provider.sqlSelectIdentityVerification = provider.db.Rebind(provider.sqlSelectIdentityVerification)
 
+	provider.sqlInsertEUDIWalletTransaction = provider.db.Rebind(provider.sqlInsertEUDIWalletTransaction)
+	provider.sqlSelectEUDIWalletTransaction = provider.db.Rebind(provider.sqlSelectEUDIWalletTransaction)
+	provider.sqlSelectEUDIWalletTransactionIDByKey = provider.db.Rebind(provider.sqlSelectEUDIWalletTransactionIDByKey)
+	provider.sqlSelectEUDIWalletTransactionIDByCode = provider.db.Rebind(provider.sqlSelectEUDIWalletTransactionIDByCode)
+	provider.sqlUpdateEUDIWalletTransaction = provider.db.Rebind(provider.sqlUpdateEUDIWalletTransaction)
+	provider.sqlDeleteEUDIWalletTransactionExpired = provider.db.Rebind(provider.sqlDeleteEUDIWalletTransactionExpired)
+
 	provider.sqlInsertOneTimeCode = provider.db.Rebind(provider.sqlInsertOneTimeCode)
 	provider.sqlConsumeOneTimeCode = provider.db.Rebind(provider.sqlConsumeOneTimeCode)
 	provider.sqlRevokeOneTimeCode = provider.db.Rebind(provider.sqlRevokeOneTimeCode)

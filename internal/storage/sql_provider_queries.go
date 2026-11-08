@@ -101,6 +101,34 @@ const (
 		FROM %s
 		WHERE public_id = ?;`
 
+	queryFmtInsertEUDIWalletTransaction = `
+		INSERT INTO %s (id, key_id, response_code_hash, version, expires_at, data)
+		VALUES (?, ?, ?, ?, ?, ?);`
+
+	queryFmtSelectEUDIWalletTransaction = `
+		SELECT id, key_id, response_code_hash, version, expires_at, data
+		FROM %s
+		WHERE id = ?;`
+
+	queryFmtSelectEUDIWalletTransactionIDByKey = `
+		SELECT id
+		FROM %s
+		WHERE key_id = ?;`
+
+	queryFmtSelectEUDIWalletTransactionIDByCode = `
+		SELECT id
+		FROM %s
+		WHERE response_code_hash = ?;`
+
+	queryFmtUpdateEUDIWalletTransaction = `
+		UPDATE %s
+		SET key_id = ?, response_code_hash = ?, version = ?, expires_at = ?, data = ?
+		WHERE id = ? AND version = ?;`
+
+	queryFmtDeleteEUDIWalletTransactionExpired = `
+		DELETE FROM %s
+		WHERE expires_at < ?;`
+
 	queryFmtInsertOTC = `
 		INSERT INTO %s (public_id, signature, issued, issued_ip, expires, username, intent, code)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
