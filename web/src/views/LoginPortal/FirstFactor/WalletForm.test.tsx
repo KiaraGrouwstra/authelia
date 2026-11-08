@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { postWalletBegin, postWalletRedeem } from "@services/Wallet";
+import { postWalletBegin, postWalletRedeem, postWalletStatus } from "@services/Wallet";
 import WalletForm from "@views/LoginPortal/FirstFactor/WalletForm";
 
 const mocks = vi.hoisted(() => ({
@@ -32,13 +32,18 @@ vi.mock("@hooks/OpenIDConnect", () => ({
     useUserCode: () => "user-code",
 }));
 
+vi.mock("qrcode.react", () => ({
+    QRCodeSVG: (props: { value: string }) => <span data-testid="qr" data-value={props.value} />,
+}));
+
 vi.mock("@services/Wallet", async (importOriginal) => ({
     ...(await importOriginal<typeof import("@services/Wallet")>()),
     postWalletBegin: vi.fn(),
     postWalletRedeem: vi.fn(),
+    postWalletStatus: vi.fn(),
 }));
 
-const allFlows = ["same_device"];
+const allFlows = ["same_device", "cross_device"];
 
 function renderForm(props: Partial<{ disabled: boolean; flows: string[] }> = {}) {
     const merged = {
@@ -62,13 +67,22 @@ beforeEach(() => {
     mocks.setSearchParams.mockReset();
     vi.mocked(postWalletBegin).mockReset();
     vi.mocked(postWalletRedeem).mockReset();
+    vi.mocked(postWalletStatus).mockReset();
 });
 
 describe("WalletForm", () => {
-    it("should offer the redirect flow", () => {
+    it("should offer the redirect and QR flows", () => {
         renderForm();
 
         expect(screen.getByRole("button", { name: /on this device/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /on another device/ })).toBeInTheDocument();
+    });
+
+    it("should offer only the configured flows", () => {
+        renderForm({ flows: ["cross_device"] });
+
+        expect(document.getElementById("wallet-cross-device-button")).not.toBeNull();
+        expect(document.getElementById("wallet-same-device-button")).toBeNull();
     });
 
     it("should render nothing when no configured flow can run", () => {
@@ -100,5 +114,41 @@ describe("WalletForm", () => {
         await waitFor(() => expect(props.onAuthenticationError).toHaveBeenCalledTimes(1));
 
         expect(props.onAuthenticationSuccess).not.toHaveBeenCalled();
+    });
+
+    it("should show the QR code and poll until the wallet answers", async () => {
+        vi.mocked(postWalletBegin).mockResolvedValue({ link: "openid4vp://?request_uri=x" });
+        vi.mocked(postWalletStatus)
+            .mockResolvedValueOnce({ pending: true })
+            .mockResolvedValueOnce({ redirect: "https://app.example.com" });
+
+        const props = renderForm();
+
+        fireEvent.click(document.getElementById("wallet-cross-device-button")!);
+
+        await waitFor(() =>
+            expect(screen.getByTestId("qr")).toHaveAttribute("data-value", "openid4vp://?request_uri=x"),
+        );
+        await waitFor(() => expect(props.onAuthenticationSuccess).toHaveBeenCalledWith("https://app.example.com"), {
+            timeout: 6000,
+        });
+
+        expect(postWalletStatus).toHaveBeenCalledTimes(2);
+        expect(screen.queryByTestId("qr")).toBeNull();
+    }, 10000);
+
+    it("should stop the QR flow on cancel", async () => {
+        vi.mocked(postWalletBegin).mockResolvedValue({ link: "openid4vp://?request_uri=x" });
+
+        const props = renderForm();
+
+        fireEvent.click(document.getElementById("wallet-cross-device-button")!);
+        await waitFor(() => expect(screen.getByTestId("qr")).toBeInTheDocument());
+
+        fireEvent.click(document.getElementById("wallet-cancel-button")!);
+
+        expect(screen.queryByTestId("qr")).toBeNull();
+        expect(props.onAuthenticationStop).toHaveBeenCalledTimes(1);
+        expect(postWalletStatus).not.toHaveBeenCalled();
     });
 });

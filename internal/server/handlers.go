@@ -326,6 +326,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		rateLimitWalletFacing := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorPassword), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
 
 		r.POST("/api/firstfactor/wallet/begin", middlewareAPI(rateLimitWalletBegin(handlers.FirstFactorWalletBeginPOST)))
+		r.POST("/api/firstfactor/wallet/status", middlewareAPI(handlers.FirstFactorWalletStatusPOST))
 		r.POST("/api/firstfactor/wallet/redeem", middlewareAPI(handlers.FirstFactorWalletRedeemPOST))
 
 		// The wallet calls these endpoints without a session.

@@ -1379,7 +1379,8 @@
           "items": {
             "type": "string",
             "enum": [
-              "same_device"
+              "same_device",
+              "cross_device"
             ]
           },
           "type": "array",

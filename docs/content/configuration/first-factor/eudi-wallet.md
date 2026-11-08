@@ -40,6 +40,7 @@ eudi_wallet:
   authelia_url: 'https://auth.example.com'
   flows:
     - 'same_device'
+    - 'cross_device'
   lifetime: '5 minutes'
   certificate_chain: |
     -----BEGIN CERTIFICATE-----
@@ -80,11 +81,12 @@ of one [session cookie](../session/introduction.md). The wallet log-in does not 
 
 ### flows
 
-{{< confkey type="list(string)" default="same_device" required="no" >}}
+{{< confkey type="list(string)" default="same_device, cross_device" required="no" >}}
 
 The log-in flows to offer:
 
 - `same_device`: the browser opens the wallet on the same device. The wallet returns the user to the browser.
+- `cross_device`: the browser shows a QR code. The user scans it with a wallet on another device.
 
 ### lifetime
 
@@ -155,3 +157,5 @@ The ISO mdoc document type to accept as PID.
 - The account match relies on the email address in the PID. The PID rulebook does not state that providers verify this
   address. Only trust a PID provider if you know that it verifies the address. If a provider lets a person state any
   address, this person can log in to the account which has the address.
+- The `cross_device` flow is open to relay attacks: an attacker can show the QR code of a session of the attacker to a
+  victim. Do not enable this flow if this risk is not acceptable.

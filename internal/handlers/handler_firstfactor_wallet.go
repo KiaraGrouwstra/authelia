@@ -41,6 +41,10 @@ type bodyWalletRedeemRequest struct {
 	ResponseCode string `json:"responseCode"`
 }
 
+type bodyWalletStatusResponse struct {
+	Pending bool `json:"pending"`
+}
+
 // FirstFactorWalletBeginPOST starts a wallet log-in for an anonymous session.
 func FirstFactorWalletBeginPOST(ctx *middlewares.AutheliaCtx) {
 	var (
@@ -140,6 +144,26 @@ func FirstFactorWalletBeginPOST(ctx *middlewares.AutheliaCtx) {
 	if err = ctx.SetJSONBody(response); err != nil {
 		ctx.Logger.WithError(err).Error("Failed to write the wallet log-in response")
 	}
+}
+
+// FirstFactorWalletStatusPOST reports whether the wallet answered a cross-device log-in, and finishes the log-in when
+// it did.
+func FirstFactorWalletStatusPOST(ctx *middlewares.AutheliaCtx) {
+	userSession, wallet, ok := eudiWalletPending(ctx)
+	if !ok {
+		return
+	}
+
+	view, err := ctx.Providers.EUDIWallet.Lookup(ctx, wallet.TransactionID, wallet.Binding)
+	if err == nil && (view.Status == verifier.TransactionPending || view.Status == verifier.TransactionAwaitingRedirect) {
+		if err = ctx.SetJSONBody(bodyWalletStatusResponse{Pending: true}); err != nil {
+			ctx.Logger.WithError(err).Error("Failed to write the wallet log-in status")
+		}
+
+		return
+	}
+
+	eudiWalletFinish(ctx, userSession, view, err)
 }
 
 // FirstFactorWalletRedeemPOST finishes a same-device log-in with the response code from the wallet redirect.

@@ -5,6 +5,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import axios from "axios";
+import { QRCodeSVG } from "qrcode.react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 
@@ -16,7 +17,17 @@ import { useFlow } from "@hooks/Flow";
 import { useUserCode } from "@hooks/OpenIDConnect";
 import { useQueryParam } from "@hooks/QueryParam";
 import { SignInResponse } from "@services/SignIn";
-import { WalletMethodSameDevice, WalletResponseCodeParam, postWalletBegin, postWalletRedeem } from "@services/Wallet";
+import {
+    WalletMethodCrossDevice,
+    WalletMethodSameDevice,
+    WalletResponseCodeParam,
+    isWalletPending,
+    postWalletBegin,
+    postWalletRedeem,
+    postWalletStatus,
+} from "@services/Wallet";
+
+const pollIntervalMilliseconds = 2000;
 
 export interface Props {
     disabled: boolean;
@@ -40,6 +51,7 @@ const WalletForm = function (props: Props) {
     const userCode = useUserCode();
 
     const [loading, setLoading] = useState(Boolean(responseCode));
+    const [link, setLink] = useState<string>();
 
     const abortRef = useRef<AbortController | null>(null);
     const redeemedRef = useRef(false);
@@ -59,6 +71,7 @@ const WalletForm = function (props: Props) {
     }, []);
 
     const stop = useCallback(() => {
+        setLink(undefined);
         setLoading(false);
         callbacksRef.current.onAuthenticationStop();
     }, []);
@@ -126,20 +139,46 @@ const WalletForm = function (props: Props) {
                     throw new Error("The server did not return a wallet link");
                 }
 
-                globalThis.location.assign(begun.link);
+                if (method === WalletMethodSameDevice) {
+                    globalThis.location.assign(begun.link);
 
-                // A custom scheme does not unload the page when no wallet handles the link.
-                stop();
+                    // A custom scheme does not unload the page when no wallet handles the link.
+                    stop();
+
+                    return;
+                }
+
+                setLink(begun.link);
+
+                for (;;) {
+                    await new Promise((resolve) => setTimeout(resolve, pollIntervalMilliseconds));
+
+                    if (signal.aborted) return;
+
+                    const status = await postWalletStatus(signal);
+
+                    if (!isWalletPending(status)) {
+                        succeed(status as SignInResponse);
+
+                        return;
+                    }
+                }
             } catch (err) {
                 fail(err);
             }
         },
-        [fail, flow, flowID, loading, redirectionURL, requestMethod, start, stop, subflow, userCode],
+        [fail, flow, flowID, loading, redirectionURL, requestMethod, start, stop, subflow, succeed, userCode],
     );
 
-    const sameDevice = props.flows.includes(WalletMethodSameDevice);
+    const handleCancel = useCallback(() => {
+        abortRef.current?.abort();
+        stop();
+    }, [stop]);
 
-    if (!sameDevice) return null;
+    const sameDevice = props.flows.includes(WalletMethodSameDevice);
+    const crossDevice = props.flows.includes(WalletMethodCrossDevice);
+
+    if (!sameDevice && !crossDevice) return null;
 
     return (
         <Fragment>
@@ -150,18 +189,46 @@ const WalletForm = function (props: Props) {
                     <Separator className="flex-1" />
                 </div>
             </div>
-            <div className="flex w-full flex-col gap-2">
-                <Button
-                    id="wallet-same-device-button"
-                    variant="default"
-                    className="w-full"
-                    onClick={() => handleSignIn(WalletMethodSameDevice)}
-                    disabled={props.disabled}
-                >
-                    {translate("Open the EU Digital Identity Wallet on this device")}
-                    {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
-                </Button>
-            </div>
+            {link ? (
+                <div className="flex w-full flex-col items-center gap-2">
+                    <p className="text-center text-sm">
+                        {translate("Scan this code with your EU Digital Identity Wallet")}
+                    </p>
+                    <div id="wallet-qr-code" className="bg-white p-2">
+                        <QRCodeSVG value={link} size={224} />
+                    </div>
+                    <Button id="wallet-cancel-button" variant="outline" className="w-full" onClick={handleCancel}>
+                        {translate("Cancel")}
+                        <Spinner size={20} className="ml-2 h-5 w-5" />
+                    </Button>
+                </div>
+            ) : (
+                <div className="flex w-full flex-col gap-2">
+                    {sameDevice ? (
+                        <Button
+                            id="wallet-same-device-button"
+                            variant="default"
+                            className="w-full"
+                            onClick={() => handleSignIn(WalletMethodSameDevice)}
+                            disabled={props.disabled}
+                        >
+                            {translate("Open the EU Digital Identity Wallet on this device")}
+                            {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
+                        </Button>
+                    ) : null}
+                    {crossDevice ? (
+                        <Button
+                            id="wallet-cross-device-button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => handleSignIn(WalletMethodCrossDevice)}
+                            disabled={props.disabled}
+                        >
+                            {translate("Use the EU Digital Identity Wallet on another device")}
+                        </Button>
+                    ) : null}
+                </div>
+            )}
         </Fragment>
     );
 };

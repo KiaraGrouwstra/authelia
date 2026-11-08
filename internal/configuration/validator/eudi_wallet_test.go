@@ -140,7 +140,7 @@ func TestValidateEUDIWalletErrors(t *testing.T) {
 			},
 			[]string{
 				"eudi_wallet: option 'flows' must not have the value 'same_device' more than once",
-				"eudi_wallet: option 'flows' must only have the values same_device but it has the value 'bad'",
+				"eudi_wallet: option 'flows' must only have the values same_device, cross_device but it has the value 'bad'",
 			},
 		},
 		{

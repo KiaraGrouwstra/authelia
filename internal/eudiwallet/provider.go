@@ -285,7 +285,7 @@ func (p *Provider) Flows() []string {
 	return p.config.Flows
 }
 
-// Begin starts a presentation and returns the transaction ID and the link for the wallet.
+// Begin starts a redirect or QR code presentation and returns the transaction ID and the link for the wallet.
 func (p *Provider) Begin(ctx context.Context, binding string, sameDevice bool) (id, link string, err error) {
 	var begun verifier.Begun
 
@@ -294,6 +294,11 @@ func (p *Provider) Begin(ctx context.Context, binding string, sameDevice bool) (
 	}
 
 	return begun.ID, begun.Link, nil
+}
+
+// Lookup returns the state of a transaction for the browser it is bound to.
+func (p *Provider) Lookup(ctx context.Context, id, binding string) (verifier.TransactionView, error) {
+	return p.transactions.Lookup(ctx, id, binding)
 }
 
 // Redeem exchanges the response code of the same-device flow for the state of the transaction.

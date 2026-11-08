@@ -127,7 +127,7 @@ func newTestProvider(t *testing.T, trusted *testAuthority) *Provider {
 	provider, err := NewProvider(&schema.EUDIWallet{
 		Enable:                 true,
 		AutheliaURL:            portal,
-		Flows:                  []string{schema.EUDIWalletFlowSameDevice},
+		Flows:                  []string{schema.EUDIWalletFlowSameDevice, schema.EUDIWalletFlowCrossDevice},
 		Lifetime:               time.Minute,
 		CertificateChain:       schema.NewX509CertificateChainFromCerts([]*x509.Certificate{leaf}),
 		PrivateKey:             key,
@@ -308,14 +308,49 @@ func TestProviderSameDeviceClosesOnAnotherBrowser(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestProviderCrossDevice(t *testing.T) {
+	authority := newTestAuthority(t, "issuer root")
+	provider := newTestProvider(t, authority)
+	ctx := context.Background()
+
+	id, link, err := provider.Begin(ctx, testBinding, false)
+	require.NoError(t, err)
+
+	view, err := provider.Lookup(ctx, id, testBinding)
+	require.NoError(t, err)
+	require.NotEqual(t, verifier.TransactionDone, view.Status)
+
+	request := fetchTestRequest(t, provider, link)
+	reply := postTestResponse(provider, request, buildTestResponse(t, request, newTestCredential(t, authority)))
+	require.Equal(t, fasthttp.StatusOK, reply.Response.StatusCode(), string(reply.Response.Body()))
+	assert.NotContains(t, string(reply.Response.Body()), "response_code")
+
+	_, err = provider.Lookup(ctx, id, "binding-of-another-browser")
+	require.Error(t, err)
+
+	view, err = provider.Lookup(ctx, id, testBinding)
+	require.NoError(t, err)
+	require.Equal(t, verifier.TransactionDone, view.Status)
+
+	email, err := Email(view.Result)
+	require.NoError(t, err)
+	assert.Equal(t, testEmail, email)
+}
+
 func TestProviderRefusesAnUntrustedIssuer(t *testing.T) {
 	provider := newTestProvider(t, newTestAuthority(t, "issuer root"))
 	ctx := context.Background()
 
-	_, link, err := provider.Begin(ctx, testBinding, true)
+	id, link, err := provider.Begin(ctx, testBinding, false)
 	require.NoError(t, err)
 
 	request := fetchTestRequest(t, provider, link)
 	reply := postTestResponse(provider, request, buildTestResponse(t, request, newTestCredential(t, newTestAuthority(t, "other root"))))
 	assert.NotEqual(t, fasthttp.StatusOK, reply.Response.StatusCode())
+
+	view, err := provider.Lookup(ctx, id, testBinding)
+	if err == nil {
+		assert.NotEqual(t, verifier.TransactionDone, view.Status)
+		assert.Nil(t, view.Result)
+	}
 }

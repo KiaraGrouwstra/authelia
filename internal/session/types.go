@@ -98,7 +98,7 @@ type EUDIWallet struct {
 	// TransactionID identifies the presentation transaction.
 	TransactionID string
 
-	// Method is the log-in method: same_device.
+	// Method is the log-in method: same_device or cross_device.
 	Method string
 
 	TargetURL      string
