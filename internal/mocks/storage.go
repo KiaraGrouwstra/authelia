@@ -190,6 +190,20 @@ func (mr *MockStorageMockRecorder) DeleteCachedData(ctx, name any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCachedData", reflect.TypeOf((*MockStorage)(nil).DeleteCachedData), ctx, name)
 }
 
+// DeleteEUDIWalletTransactionsExpired mocks base method.
+func (m *MockStorage) DeleteEUDIWalletTransactionsExpired(ctx context.Context, before time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteEUDIWalletTransactionsExpired", ctx, before)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteEUDIWalletTransactionsExpired indicates an expected call of DeleteEUDIWalletTransactionsExpired.
+func (mr *MockStorageMockRecorder) DeleteEUDIWalletTransactionsExpired(ctx, before any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEUDIWalletTransactionsExpired", reflect.TypeOf((*MockStorage)(nil).DeleteEUDIWalletTransactionsExpired), ctx, before)
+}
+
 // DeletePreferredDuoDevice mocks base method.
 func (m *MockStorage) DeletePreferredDuoDevice(ctx context.Context, username string) error {
 	m.ctrl.T.Helper()
@@ -379,6 +393,51 @@ func (m *MockStorage) LoadCachedData(ctx context.Context, name string) (*model.C
 func (mr *MockStorageMockRecorder) LoadCachedData(ctx, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadCachedData", reflect.TypeOf((*MockStorage)(nil).LoadCachedData), ctx, name)
+}
+
+// LoadEUDIWalletTransaction mocks base method.
+func (m *MockStorage) LoadEUDIWalletTransaction(ctx context.Context, id string) (*model.EUDIWalletTransaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadEUDIWalletTransaction", ctx, id)
+	ret0, _ := ret[0].(*model.EUDIWalletTransaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadEUDIWalletTransaction indicates an expected call of LoadEUDIWalletTransaction.
+func (mr *MockStorageMockRecorder) LoadEUDIWalletTransaction(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadEUDIWalletTransaction", reflect.TypeOf((*MockStorage)(nil).LoadEUDIWalletTransaction), ctx, id)
+}
+
+// LoadEUDIWalletTransactionIDByKeyID mocks base method.
+func (m *MockStorage) LoadEUDIWalletTransactionIDByKeyID(ctx context.Context, keyID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadEUDIWalletTransactionIDByKeyID", ctx, keyID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadEUDIWalletTransactionIDByKeyID indicates an expected call of LoadEUDIWalletTransactionIDByKeyID.
+func (mr *MockStorageMockRecorder) LoadEUDIWalletTransactionIDByKeyID(ctx, keyID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadEUDIWalletTransactionIDByKeyID", reflect.TypeOf((*MockStorage)(nil).LoadEUDIWalletTransactionIDByKeyID), ctx, keyID)
+}
+
+// LoadEUDIWalletTransactionIDByResponseCodeHash mocks base method.
+func (m *MockStorage) LoadEUDIWalletTransactionIDByResponseCodeHash(ctx context.Context, hash string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadEUDIWalletTransactionIDByResponseCodeHash", ctx, hash)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoadEUDIWalletTransactionIDByResponseCodeHash indicates an expected call of LoadEUDIWalletTransactionIDByResponseCodeHash.
+func (mr *MockStorageMockRecorder) LoadEUDIWalletTransactionIDByResponseCodeHash(ctx, hash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadEUDIWalletTransactionIDByResponseCodeHash", reflect.TypeOf((*MockStorage)(nil).LoadEUDIWalletTransactionIDByResponseCodeHash), ctx, hash)
 }
 
 // LoadIdentityVerification mocks base method.
@@ -970,6 +1029,20 @@ func (mr *MockStorageMockRecorder) SaveCachedData(ctx, data any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveCachedData", reflect.TypeOf((*MockStorage)(nil).SaveCachedData), ctx, data)
 }
 
+// SaveEUDIWalletTransaction mocks base method.
+func (m *MockStorage) SaveEUDIWalletTransaction(ctx context.Context, transaction model.EUDIWalletTransaction) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveEUDIWalletTransaction", ctx, transaction)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveEUDIWalletTransaction indicates an expected call of SaveEUDIWalletTransaction.
+func (mr *MockStorageMockRecorder) SaveEUDIWalletTransaction(ctx, transaction any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveEUDIWalletTransaction", reflect.TypeOf((*MockStorage)(nil).SaveEUDIWalletTransaction), ctx, transaction)
+}
+
 // SaveIdentityVerification mocks base method.
 func (m *MockStorage) SaveIdentityVerification(ctx context.Context, verification model.IdentityVerification) error {
 	m.ctrl.T.Helper()
@@ -1369,6 +1442,20 @@ func (m *MockStorage) StartupCheck() error {
 func (mr *MockStorageMockRecorder) StartupCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartupCheck", reflect.TypeOf((*MockStorage)(nil).StartupCheck))
+}
+
+// UpdateEUDIWalletTransaction mocks base method.
+func (m *MockStorage) UpdateEUDIWalletTransaction(ctx context.Context, transaction model.EUDIWalletTransaction, expected int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateEUDIWalletTransaction", ctx, transaction, expected)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateEUDIWalletTransaction indicates an expected call of UpdateEUDIWalletTransaction.
+func (mr *MockStorageMockRecorder) UpdateEUDIWalletTransaction(ctx, transaction, expected any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEUDIWalletTransaction", reflect.TypeOf((*MockStorage)(nil).UpdateEUDIWalletTransaction), ctx, transaction, expected)
 }
 
 // UpdateOAuth2DeviceCodeSession mocks base method.

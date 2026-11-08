@@ -130,6 +130,7 @@ const (
 	LogMessageStartupCheckError      = "Error occurred running a startup check"
 	LogMessageStartupCheckPerforming = "Performing Startup Check"
 
+	ProviderNameEUDIWallet       = schema.ProviderNameEUDIWallet
 	ProviderNameNTP              = schema.ProviderNameNTP
 	ProviderNameStorage          = schema.ProviderNameStorage
 	ProviderNameUser             = schema.ProviderNameUser

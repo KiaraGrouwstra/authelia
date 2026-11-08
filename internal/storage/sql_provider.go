@@ -93,6 +93,13 @@ func NewSQLProvider(config *schema.Configuration, name, driverName, dataSourceNa
 		sqlRevokeIdentityVerification:  fmt.Sprintf(queryFmtRevokeIdentityVerification, tableIdentityVerification),
 		sqlSelectIdentityVerification:  fmt.Sprintf(queryFmtSelectIdentityVerification, tableIdentityVerification),
 
+		sqlInsertEUDIWalletTransaction:         fmt.Sprintf(queryFmtInsertEUDIWalletTransaction, tableEUDIWalletTransaction),
+		sqlSelectEUDIWalletTransaction:         fmt.Sprintf(queryFmtSelectEUDIWalletTransaction, tableEUDIWalletTransaction),
+		sqlSelectEUDIWalletTransactionIDByKey:  fmt.Sprintf(queryFmtSelectEUDIWalletTransactionIDByKey, tableEUDIWalletTransaction),
+		sqlSelectEUDIWalletTransactionIDByCode: fmt.Sprintf(queryFmtSelectEUDIWalletTransactionIDByCode, tableEUDIWalletTransaction),
+		sqlUpdateEUDIWalletTransaction:         fmt.Sprintf(queryFmtUpdateEUDIWalletTransaction, tableEUDIWalletTransaction),
+		sqlDeleteEUDIWalletTransactionExpired:  fmt.Sprintf(queryFmtDeleteEUDIWalletTransactionExpired, tableEUDIWalletTransaction),
+
 		sqlInsertOneTimeCode:            fmt.Sprintf(queryFmtInsertOTC, tableOneTimeCode),
 		sqlConsumeOneTimeCode:           fmt.Sprintf(queryFmtConsumeOTC, tableOneTimeCode),
 		sqlRevokeOneTimeCode:            fmt.Sprintf(queryFmtRevokeOTC, tableOneTimeCode),
@@ -261,6 +268,13 @@ type SQLProvider struct {
 	sqlSelectIdentityVerification  string
 
 	// Table: one_time_code.
+	sqlInsertEUDIWalletTransaction         string
+	sqlSelectEUDIWalletTransaction         string
+	sqlSelectEUDIWalletTransactionIDByKey  string
+	sqlSelectEUDIWalletTransactionIDByCode string
+	sqlUpdateEUDIWalletTransaction         string
+	sqlDeleteEUDIWalletTransactionExpired  string
+
 	sqlInsertOneTimeCode            string
 	sqlConsumeOneTimeCode           string
 	sqlRevokeOneTimeCode            string
@@ -1048,6 +1062,73 @@ func (p *SQLProvider) LoadIdentityVerification(ctx context.Context, jti string) 
 	}
 
 	return verification, nil
+}
+
+// SaveEUDIWalletTransaction creates an EU Digital Identity Wallet presentation transaction. It fails if the ID is in use.
+func (p *SQLProvider) SaveEUDIWalletTransaction(ctx context.Context, transaction model.EUDIWalletTransaction) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlInsertEUDIWalletTransaction,
+		transaction.ID, transaction.KeyID, transaction.ResponseCodeHash, transaction.Version,
+		transaction.ExpiresAt, transaction.Data); err != nil {
+		return fmt.Errorf("error inserting EU Digital Identity Wallet transaction: %w", err)
+	}
+
+	return nil
+}
+
+// LoadEUDIWalletTransaction loads an EU Digital Identity Wallet presentation transaction.
+func (p *SQLProvider) LoadEUDIWalletTransaction(ctx context.Context, id string) (transaction *model.EUDIWalletTransaction, err error) {
+	transaction = &model.EUDIWalletTransaction{}
+
+	if err = p.conn(ctx).GetContext(ctx, transaction, p.sqlSelectEUDIWalletTransaction, id); err != nil {
+		return nil, fmt.Errorf("error selecting EU Digital Identity Wallet transaction: %w", err)
+	}
+
+	return transaction, nil
+}
+
+// LoadEUDIWalletTransactionIDByKeyID finds the ID of the transaction with this response encryption key ID.
+func (p *SQLProvider) LoadEUDIWalletTransactionIDByKeyID(ctx context.Context, keyID string) (id string, err error) {
+	if err = p.conn(ctx).GetContext(ctx, &id, p.sqlSelectEUDIWalletTransactionIDByKey, keyID); err != nil {
+		return "", fmt.Errorf("error selecting EU Digital Identity Wallet transaction by key ID: %w", err)
+	}
+
+	return id, nil
+}
+
+// LoadEUDIWalletTransactionIDByResponseCodeHash finds the ID of the transaction with this response code hash.
+func (p *SQLProvider) LoadEUDIWalletTransactionIDByResponseCodeHash(ctx context.Context, hash string) (id string, err error) {
+	if err = p.conn(ctx).GetContext(ctx, &id, p.sqlSelectEUDIWalletTransactionIDByCode, hash); err != nil {
+		return "", fmt.Errorf("error selecting EU Digital Identity Wallet transaction by response code: %w", err)
+	}
+
+	return id, nil
+}
+
+// UpdateEUDIWalletTransaction replaces a transaction when its stored version is the expected version. It returns
+// ErrNoRowsAffected when the stored version differs.
+func (p *SQLProvider) UpdateEUDIWalletTransaction(ctx context.Context, transaction model.EUDIWalletTransaction, expected int64) (err error) {
+	var result sql.Result
+
+	if result, err = p.conn(ctx).ExecContext(ctx, p.sqlUpdateEUDIWalletTransaction,
+		transaction.KeyID, transaction.ResponseCodeHash, transaction.Version, transaction.ExpiresAt, transaction.Data,
+		transaction.ID, expected); err != nil {
+		return fmt.Errorf("error updating EU Digital Identity Wallet transaction: %w", err)
+	}
+
+	if err = checkSingleUpdateResult(result); err != nil {
+		return fmt.Errorf("error updating EU Digital Identity Wallet transaction: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteEUDIWalletTransactionsExpired deletes the transactions which expired before the given time.
+func (p *SQLProvider) DeleteEUDIWalletTransactionsExpired(ctx context.Context, before time.Time) (err error) {
+	if _, err = p.conn(ctx).ExecContext(ctx, p.sqlDeleteEUDIWalletTransactionExpired, before); err != nil {
+		return fmt.Errorf("error deleting expired EU Digital Identity Wallet transactions: %w", err)
+	}
+
+	return nil
 }
 
 // SaveOneTimeCode saves a One-Time Code to the storage provider after generating the signature which is returned

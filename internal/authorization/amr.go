@@ -68,6 +68,7 @@ type AuthenticationMethodsReferences struct {
 	WebAuthnSoftware             bool
 	WebAuthnUserPresence         bool
 	WebAuthnUserVerified         bool
+	EUDIWallet                   bool
 	Extra                        []string
 }
 
@@ -78,7 +79,7 @@ func (r AuthenticationMethodsReferences) FactorKnowledge() bool {
 
 // FactorPossession returns true if a "something you have" factor of authentication was used.
 func (r AuthenticationMethodsReferences) FactorPossession() bool {
-	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware
+	return r.TOTP || r.Duo || r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.EUDIWallet
 }
 
 // MultiFactorAuthentication returns true if multiple factors were used.
@@ -124,7 +125,7 @@ func (r AuthenticationMethodsReferences) MarshalRFC8176() []string {
 		amr = append(amr, AMRShortMessageService)
 	}
 
-	if r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware {
+	if r.WebAuthn || r.WebAuthnHardware || r.WebAuthnSoftware || r.EUDIWallet {
 		amr = append(amr, AMRProofOfPossession)
 	}
 

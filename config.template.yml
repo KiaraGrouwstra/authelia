@@ -118,7 +118,8 @@
 
       ## The providers probed by the verbose endpoint. Probing 'notification' opens a connection to the SMTP
       ## server, and probing 'ntp' or 'duo' contacts an external server, so none of them are included by default.
-      ## Options are 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', 'duo', and 'webauthn-metadata'.
+      ## Options are 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', 'duo', 'webauthn-metadata',
+      ## and 'eudi-wallet'.
       # providers:
       #   - 'storage'
       #   - 'session'
@@ -372,6 +373,71 @@
   ## Duo Auth API can be used. Can't be enabled for a Duo hostname. See:
   ## https://www.authelia.com/configuration/second-factor/duo/#experimental_disable_ca_pinning
   # experimental_disable_ca_pinning: false
+
+##
+## EU Digital Identity Wallet Configuration
+##
+## Parameters used for first factor log-in with an EU Digital Identity Wallet.
+# eudi_wallet:
+  ## Enables log-in with an EU Digital Identity Wallet as a first factor.
+  # enable: false
+
+  ## The Authelia portal URL which offers the wallet log-in. It must be equal to the authelia_url of one session cookie.
+  # authelia_url: 'https://auth.example.com'
+
+  ## The log-in flows to offer. Options are same_device, cross_device, digital_credentials.
+  # flows:
+  # - 'same_device'
+  # - 'cross_device'
+  # - 'digital_credentials'
+
+  ## The lifetime of a presentation transaction. The maximum is 1 hour.
+  # lifetime: '5 minutes'
+
+  ## The Relying Party access certificate chain which signs presentation requests, in PEM format with the leaf first.
+  # certificate_chain: |
+  #   -----BEGIN CERTIFICATE-----
+  #   ...
+  #   -----END CERTIFICATE-----
+  #   -----BEGIN CERTIFICATE-----
+  #   ...
+  #   -----END CERTIFICATE-----
+
+  ## The P-256 private key of the leaf certificate in the certificate chain.
+  # private_key: |
+  #   -----BEGIN PRIVATE KEY-----
+  #   ...
+  #   -----END PRIVATE KEY-----
+
+  ## The root certificates of the Person Identification Data providers to trust.
+  # trusted_issuer_roots:
+  # - |
+  #   -----BEGIN CERTIFICATE-----
+  #   ...
+  #   -----END CERTIFICATE-----
+  #   -----BEGIN CERTIFICATE-----
+  #   ...
+  #   -----END CERTIFICATE-----
+
+  ## The certificates which may sign the certificate revocation lists. The default is the trusted issuer roots.
+  # crl_issuers: []
+
+  ## The certificate revocation lists to check the certificates of the issuers against.
+  # crl_urls:
+  # - 'https://pki.example.com/issuer.crl'
+
+  ## Disables the certificate revocation check of the issuers. It must not be used with crl_urls.
+  # disable_revocation_check: false
+
+  ## Disables the check of the credential status list.
+  # disable_status_check: false
+
+  ## The SD-JWT VC types to accept as Person Identification Data.
+  # vct_values:
+  # - 'urn:eudi:pid:1'
+
+  ## The ISO mdoc document type to accept as Person Identification Data.
+  # mdoc_doc_type: 'eu.europa.ec.eudi.pid.1'
 
 ##
 ## Identity Validation Configuration

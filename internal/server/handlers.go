@@ -321,6 +321,31 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.DELETE("/api/secondfactor/totp/register", middlewareElevated1FA(handlers.TOTPRegisterDELETE))
 	}
 
+	if config.EUDIWallet.Enable {
+		rateLimitWalletBegin := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorPassword), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
+		rateLimitWalletFacing := middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorPassword), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware()
+
+		r.POST("/api/firstfactor/wallet/begin", middlewareAPI(rateLimitWalletBegin(handlers.FirstFactorWalletBeginPOST)))
+		r.POST("/api/firstfactor/wallet/status", middlewareAPI(handlers.FirstFactorWalletStatusPOST))
+		r.POST("/api/firstfactor/wallet/redeem", middlewareAPI(handlers.FirstFactorWalletRedeemPOST))
+		r.POST("/api/firstfactor/wallet/dcapi", middlewareAPI(handlers.FirstFactorWalletDigitalCredentialsPOST))
+
+		// The wallet calls these endpoints without a session.
+		r.GET("/api/firstfactor/wallet/request/{id}", middlewareAPI(rateLimitWalletFacing(handlers.FirstFactorWalletRequestObject)))
+		r.POST("/api/firstfactor/wallet/request/{id}", middlewareAPI(rateLimitWalletFacing(handlers.FirstFactorWalletRequestObject)))
+		r.POST("/api/firstfactor/wallet/response", middlewareAPI(rateLimitWalletFacing(handlers.FirstFactorWalletResponsePOST)))
+	}
+
+	// A passkey or a wallet is a first factor without knowledge, so the password can be the second factor.
+	if (!config.WebAuthn.Disable && config.WebAuthn.EnablePasskeyLogin) || config.EUDIWallet.Enable {
+		middlewareRateLimitPassword := middlewares.NewBridgeBuilder(*config, providers).
+			WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
+			WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorPassword), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
+			Build()
+
+		r.POST("/api/secondfactor/password", middlewareRateLimitPassword(handlers.SecondFactorPasswordPOST(delayerPassword)))
+	}
+
 	if !config.WebAuthn.Disable {
 		r.GET("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionGET))
 		r.POST("/api/secondfactor/webauthn", middleware1FA(handlers.WebAuthnAssertionPOST))
@@ -328,13 +353,6 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		if config.WebAuthn.EnablePasskeyLogin {
 			r.GET("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyGET))
 			r.POST("/api/firstfactor/passkey", middlewareAPI(handlers.FirstFactorPasskeyPOST))
-
-			middlewareRateLimitPassword := middlewares.NewBridgeBuilder(*config, providers).
-				WithPreMiddlewares(middlewares.SecurityHeadersBase, middlewares.SecurityHeadersNoStore, middlewares.SecurityHeadersCSPNone).
-				WithPostMiddlewares(middlewares.NewRateLimiter(middlewares.WithRateLimitConfig(config.Server.Endpoints.RateLimits.SecondFactorPassword), middlewares.WithRateLimitCollector(providers.GarbageCollector)).Middleware(), middlewares.Require1FA).
-				Build()
-
-			r.POST("/api/secondfactor/password", middlewareRateLimitPassword(handlers.SecondFactorPasswordPOST(delayerPassword)))
 		}
 
 		r.GET("/api/secondfactor/webauthn/credentials", middleware1FA(handlers.WebAuthnCredentialsGET))

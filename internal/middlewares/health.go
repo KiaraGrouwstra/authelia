@@ -102,6 +102,12 @@ func (p *Providers) healthCheckProvider(name string) (provider model.StartupChec
 		}
 
 		return p.MetaDataService, nil
+	case schema.ProviderNameEUDIWallet:
+		if p.EUDIWallet == nil {
+			return nil, ErrHealthCheckProviderNotConfigured
+		}
+
+		return p.EUDIWallet, nil
 	default:
 		return nil, ErrHealthCheckProviderUnknown
 	}

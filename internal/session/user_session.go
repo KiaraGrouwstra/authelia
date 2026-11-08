@@ -56,6 +56,15 @@ func (s *UserSession) SetOneFactorPasskey(now time.Time, details *authentication
 	s.setWebAuthn(hardware, userPresence, userVerified)
 }
 
+// SetOneFactorEUDIWallet sets the 1FA AMR's and expected property values for one factor EU Digital Identity Wallet
+// authentication.
+func (s *UserSession) SetOneFactorEUDIWallet(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
+	s.setOneFactor(now, details, keepMeLoggedIn)
+
+	s.AuthenticationMethodRefs.EUDIWallet = true
+	s.EUDIWallet = nil
+}
+
 func (s *UserSession) setOneFactor(now time.Time, details *authentication.UserDetails, keepMeLoggedIn bool) {
 	s.FirstFactorAuthnTimestamp = now.Unix()
 	s.LastActivity = now.Unix()

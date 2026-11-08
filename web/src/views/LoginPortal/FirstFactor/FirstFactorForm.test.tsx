@@ -103,6 +103,7 @@ const defaultProps = {
     rememberMe: false,
     resetPassword: false,
     resetPasswordCustomURL: "",
+    walletFlows: [] as string[],
 };
 
 function renderForm(props: Partial<typeof defaultProps> = {}) {

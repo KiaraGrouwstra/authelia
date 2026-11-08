@@ -332,6 +332,22 @@ const (
 
 // WebAuthn Error constants.
 const (
+	errFmtEUDIWalletOptionRequired      = "eudi_wallet: option '%s' is required"
+	errFmtEUDIWalletAutheliaURLScheme   = "eudi_wallet: option 'authelia_url' must have the scheme 'https' but it has the scheme '%s'"
+	errFmtEUDIWalletAutheliaURLCookie   = "eudi_wallet: option 'authelia_url' must be equal to one of the 'session' configuration 'cookies' option 'authelia_url' values but '%s' is not"
+	errFmtEUDIWalletFlowUnknown         = "eudi_wallet: option 'flows' must only have the values %s but it has the value '%s'"
+	errFmtEUDIWalletFlowDuplicate       = "eudi_wallet: option 'flows' must not have the value '%s' more than once"
+	errFmtEUDIWalletLifetime            = "eudi_wallet: option 'lifetime' must be more than 0 seconds and at most %s but it is %s"
+	errFmtEUDIWalletCertificateChain    = "eudi_wallet: option 'certificate_chain' is invalid: %w"
+	errFmtEUDIWalletCertificateSelf     = "eudi_wallet: option 'certificate_chain' must not have a self-signed leaf certificate"
+	errFmtEUDIWalletPrivateKey          = "eudi_wallet: option 'private_key' must be an ECDSA key on the P-256 curve"
+	errFmtEUDIWalletPrivateKeyMatch     = "eudi_wallet: option 'private_key' must be the key of the leaf certificate in option 'certificate_chain'"
+	errFmtEUDIWalletRevocationExclusive = "eudi_wallet: option 'crl_urls' must not be set when option 'disable_revocation_check' is true"
+	errFmtEUDIWalletRevocationRequired  = "eudi_wallet: option 'crl_urls' is required unless option 'disable_revocation_check' is true"
+	errFmtEUDIWalletCRLURL              = "eudi_wallet: option 'crl_urls' must only have 'http' or 'https' URLs but it has the value '%s'"
+	errFmtEUDIWalletRoots               = "eudi_wallet: option 'trusted_issuer_roots' must have at least one certificate in every value"
+	errFmtEUDIWalletCRLIssuers          = "eudi_wallet: option 'crl_issuers' must have at least one certificate in every value"
+
 	errFmtWebAuthnConveyancePreference   = "webauthn: option 'attestation_conveyance_preference' must be one of %s but it's configured as '%s'"
 	errFmtWebAuthnSelectionCriteria      = "webauthn: selection_criteria: option '%s' must be one of %s but it's configured as '%s'"
 	errFmtWebAuthnPasskeyDiscoverability = "webauthn: selection_criteria: option 'discoverability' should generally be configured as '%s' or '%s' when passkey logins are enabled" //nolint:gosec
