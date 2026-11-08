@@ -23,12 +23,13 @@ const (
 	ProviderNameExpressions      = "expressions"
 	ProviderNameDuo              = "duo"
 	ProviderNameWebAuthnMetaData = "webauthn-metadata"
+	ProviderNameEUDIWallet       = "eudi-wallet"
 )
 
 // ProviderNames are every provider which can be probed by name.
 var ProviderNames = []string{
 	ProviderNameStorage, ProviderNameSession, ProviderNameUser, ProviderNameNotification,
-	ProviderNameNTP, ProviderNameExpressions, ProviderNameDuo, ProviderNameWebAuthnMetaData,
+	ProviderNameNTP, ProviderNameExpressions, ProviderNameDuo, ProviderNameWebAuthnMetaData, ProviderNameEUDIWallet,
 }
 
 const (

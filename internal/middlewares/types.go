@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/eudiwallet"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
@@ -43,6 +44,7 @@ type AutheliaCtx struct {
 
 // Providers contain all provider provided to Authelia.
 type Providers struct {
+	EUDIWallet            *eudiwallet.Provider
 	Authorizer            *authorization.Authorizer
 	SessionProvider       *session.Provider
 	Regulator             *regulation.Regulator

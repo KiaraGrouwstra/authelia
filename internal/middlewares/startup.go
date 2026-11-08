@@ -58,6 +58,10 @@ func (p *Providers) StartupChecks(ctx ServiceContext, log bool) (err error) {
 	disable = ctx.GetConfiguration().DuoAPI.Disable || provider == nil
 	doStartupCheck(ctx, ProviderNameDuo, provider, nil, disable, log, e.errors)
 
+	provider = ctx.GetProviders().EUDIWallet
+	disable = ctx.GetProviders().EUDIWallet == nil
+	doStartupCheck(ctx, ProviderNameEUDIWallet, provider, nil, disable, log, e.errors)
+
 	var filters []string
 
 	if ctx.GetConfiguration().NTP.DisableFailure {

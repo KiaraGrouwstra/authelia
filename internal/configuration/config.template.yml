@@ -118,7 +118,8 @@
 
       ## The providers probed by the verbose endpoint. Probing 'notification' opens a connection to the SMTP
       ## server, and probing 'ntp' or 'duo' contacts an external server, so none of them are included by default.
-      ## Options are 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', 'duo', and 'webauthn-metadata'.
+      ## Options are 'storage', 'session', 'user', 'notification', 'ntp', 'expressions', 'duo', 'webauthn-metadata',
+      ## and 'eudi-wallet'.
       # providers:
       #   - 'storage'
       #   - 'session'

@@ -16,6 +16,7 @@ import (
 	"github.com/authelia/authelia/v4/internal/clock"
 	"github.com/authelia/authelia/v4/internal/configuration/schema"
 	"github.com/authelia/authelia/v4/internal/duo"
+	"github.com/authelia/authelia/v4/internal/eudiwallet"
 	"github.com/authelia/authelia/v4/internal/expression"
 	"github.com/authelia/authelia/v4/internal/metrics"
 	"github.com/authelia/authelia/v4/internal/notification"
@@ -56,6 +57,12 @@ func NewProviders(config *schema.Configuration, caCertPool *x509.CertPool) (prov
 
 	if providers.MetaDataService, err = webauthn.NewMetaDataProvider(config, providers.StorageProvider); err != nil {
 		errs = append(errs, err)
+	}
+
+	if config.EUDIWallet.Enable {
+		if providers.EUDIWallet, err = eudiwallet.NewProvider(&config.EUDIWallet, config.Storage.EncryptionKey, providers.StorageProvider); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	providers.Authorizer = authorization.NewAuthorizer(config)
