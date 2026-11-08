@@ -26,10 +26,12 @@ import LoginLayout from "@layouts/LoginLayout";
 import { IsCapsLockModified } from "@services/CapsLock";
 import { postFirstFactor } from "@services/Password";
 import PasskeyForm from "@views/LoginPortal/FirstFactor/PasskeyForm";
+import WalletForm from "@views/LoginPortal/FirstFactor/WalletForm";
 
 export interface Props {
     disabled: boolean;
     passkeyLogin: boolean;
+    walletFlows: string[];
     rememberMe: boolean;
     resetPassword: boolean;
     resetPasswordCustomURL: string;
@@ -338,6 +340,28 @@ const FirstFactorForm = function (props: Props) {
                         <PasskeyForm
                             disabled={disabled || loading}
                             rememberMe={props.rememberMe}
+                            onAuthenticationError={(err) => createErrorNotification(err.message)}
+                            onAuthenticationStart={() => {
+                                setUsername("");
+                                setPassword("");
+                                setLoading(true);
+                                props.onAuthenticationStart();
+                            }}
+                            onAuthenticationStop={() => {
+                                setLoading(false);
+                                props.onAuthenticationStop();
+                            }}
+                            onAuthenticationSuccess={(url) => {
+                                setLoading(false);
+                                props.onAuthenticationSuccess(url);
+                            }}
+                        />
+                    ) : null}
+                    {props.walletFlows.length > 0 ? (
+                        <WalletForm
+                            disabled={disabled || loading}
+                            rememberMe={props.rememberMe}
+                            flows={props.walletFlows}
                             onAuthenticationError={(err) => createErrorNotification(err.message)}
                             onAuthenticationStart={() => {
                                 setUsername("");

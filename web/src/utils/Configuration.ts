@@ -31,6 +31,12 @@ export function getResetPassword() {
     return getEmbeddedVariable("resetpassword") === "true";
 }
 
+export function getWalletFlows() {
+    return getEmbeddedVariable("walletflows")
+        .split(",")
+        .filter((flow) => flow.length > 0);
+}
+
 export function getPasskeyLogin() {
     return getEmbeddedVariable("passkeylogin") === "true";
 }

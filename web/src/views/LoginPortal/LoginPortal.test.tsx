@@ -117,6 +117,7 @@ const defaultProps = {
     rememberMe: true,
     resetPassword: true,
     resetPasswordCustomURL: "",
+    walletFlows: [] as string[],
 };
 
 const mockNotificationsReturn: ReturnType<typeof useNotifications> = {

@@ -17,6 +17,7 @@ import {
     getTOTPAppAppleStore,
     getTOTPAppGooglePlay,
     getTheme,
+    getWalletFlows,
 } from "@utils/Configuration";
 
 beforeEach(() => {
@@ -108,4 +109,14 @@ it("returns true when privacy policy accept is required", () => {
 it("returns the theme value", () => {
     document.body.dataset.theme = "dark";
     expect(getTheme()).toBe("dark");
+});
+
+it("should return the wallet flows", () => {
+    document.body.dataset.walletflows = "same_device,cross_device";
+    expect(getWalletFlows()).toEqual(["same_device", "cross_device"]);
+});
+
+it("should return no wallet flows when the value is empty", () => {
+    document.body.dataset.walletflows = "";
+    expect(getWalletFlows()).toEqual([]);
 });

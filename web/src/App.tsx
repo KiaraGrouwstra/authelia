@@ -32,6 +32,7 @@ import {
     getRememberMe,
     getResetPassword,
     getResetPasswordCustomURL,
+    getWalletFlows,
 } from "@utils/Configuration";
 import LoadingPage from "@views/LoadingPage/LoadingPage";
 import LoginPortal from "@views/LoginPortal/LoginPortal";
@@ -73,6 +74,7 @@ function App() {
                                                     <LoginPortal
                                                         duoSelfEnrollment={getDuoSelfEnrollment()}
                                                         passkeyLogin={getPasskeyLogin()}
+                                                        walletFlows={getWalletFlows()}
                                                         rememberMe={getRememberMe()}
                                                         resetPassword={getResetPassword()}
                                                         resetPasswordCustomURL={getResetPasswordCustomURL()}

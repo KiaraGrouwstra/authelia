@@ -610,3 +610,10 @@ func TestTemplatedFileOptionsOpenAPIData(t *testing.T) {
 		})
 	}
 }
+
+func TestTemplatedFileOptionsWalletFlows(t *testing.T) {
+	flows := []string{schema.EUDIWalletFlowSameDevice}
+
+	assert.Equal(t, "", NewTemplatedFileOptions(&schema.Configuration{EUDIWallet: schema.EUDIWallet{Flows: flows}}).WalletFlows)
+	assert.Equal(t, "same_device", NewTemplatedFileOptions(&schema.Configuration{EUDIWallet: schema.EUDIWallet{Enable: true, Flows: flows}}).WalletFlows)
+}

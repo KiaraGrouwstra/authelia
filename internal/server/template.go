@@ -213,12 +213,21 @@ func ETagRootURL(next middlewares.RequestHandler) middlewares.RequestHandler {
 	}
 }
 
+func walletFlows(config *schema.Configuration) string {
+	if !config.EUDIWallet.Enable {
+		return ""
+	}
+
+	return strings.Join(config.EUDIWallet.Flows, ",")
+}
+
 // NewTemplatedFileOptions returns a new *TemplatedFileOptions.
 func NewTemplatedFileOptions(config *schema.Configuration) (opts *TemplatedFileOptions) {
 	opts = &TemplatedFileOptions{
 		AssetPath:               config.Server.AssetPath,
 		DuoSelfEnrollment:       strFalse,
 		PasskeyLogin:            strconv.FormatBool(config.WebAuthn.EnablePasskeyLogin),
+		WalletFlows:             walletFlows(config),
 		RememberMe:              strconv.FormatBool(!config.Session.DisableRememberMe),
 		ResetPassword:           strconv.FormatBool(!config.AuthenticationBackend.PasswordReset.Disable),
 		ResetPasswordCustomURL:  config.AuthenticationBackend.PasswordReset.CustomURL.String(),
@@ -266,6 +275,7 @@ type TemplatedFileOptions struct {
 	AssetPath              string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
+	WalletFlows            string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
@@ -305,6 +315,7 @@ func (options *TemplatedFileOptions) CommonData(base, baseURL, domain, nonce, la
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
+		WalletFlows:            options.WalletFlows,
 		RememberMe:             options.RememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -328,6 +339,7 @@ func (options *TemplatedFileOptions) commonDataWithRememberMe(base, baseURL, dom
 		LogoOverride:           logoOverride,
 		DuoSelfEnrollment:      options.DuoSelfEnrollment,
 		PasskeyLogin:           options.PasskeyLogin,
+		WalletFlows:            options.WalletFlows,
 		RememberMe:             rememberMe,
 		ResetPassword:          options.ResetPassword,
 		ResetPasswordCustomURL: options.ResetPasswordCustomURL,
@@ -370,6 +382,7 @@ type TemplatedFileCommonData struct {
 	LogoOverride           string
 	DuoSelfEnrollment      string
 	PasskeyLogin           string
+	WalletFlows            string
 	RememberMe             string
 	ResetPassword          string
 	ResetPasswordCustomURL string
