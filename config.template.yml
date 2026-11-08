@@ -385,10 +385,11 @@
   ## The Authelia portal URL which offers the wallet log-in. It must be equal to the authelia_url of one session cookie.
   # authelia_url: 'https://auth.example.com'
 
-  ## The log-in flows to offer. Options are same_device, cross_device.
+  ## The log-in flows to offer. Options are same_device, cross_device, digital_credentials.
   # flows:
   # - 'same_device'
   # - 'cross_device'
+  # - 'digital_credentials'
 
   ## The lifetime of a presentation transaction. The maximum is 1 hour.
   # lifetime: '5 minutes'

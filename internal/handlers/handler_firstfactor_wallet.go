@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"slices"
 
@@ -34,11 +35,16 @@ type bodyWalletBeginRequest struct {
 }
 
 type bodyWalletBeginResponse struct {
-	Link string `json:"link,omitempty"`
+	Link    string                 `json:"link,omitempty"`
+	Request *verifier.DCAPIRequest `json:"request,omitempty"`
 }
 
 type bodyWalletRedeemRequest struct {
 	ResponseCode string `json:"responseCode"`
+}
+
+type bodyWalletDigitalCredentialsRequest struct {
+	Data json.RawMessage `json:"data"`
 }
 
 type bodyWalletStatusResponse struct {
@@ -113,7 +119,15 @@ func FirstFactorWalletBeginPOST(ctx *middlewares.AutheliaCtx) {
 		response bodyWalletBeginResponse
 	)
 
-	id, response.Link, err = provider.Begin(ctx, binding, body.Method == schema.EUDIWalletFlowSameDevice)
+	if body.Method == schema.EUDIWalletFlowDigitalCredentials {
+		var request verifier.DCAPIRequest
+
+		id, request, err = provider.BeginDigitalCredentials(ctx, binding)
+		response.Request = &request
+	} else {
+		id, response.Link, err = provider.Begin(ctx, binding, body.Method == schema.EUDIWalletFlowSameDevice)
+	}
+
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Failed to start a wallet presentation")
 		eudiWalletForbidden(ctx)
@@ -184,6 +198,28 @@ func FirstFactorWalletRedeemPOST(ctx *middlewares.AutheliaCtx) {
 	}
 
 	view, err := ctx.Providers.EUDIWallet.Redeem(ctx, body.ResponseCode, wallet.Binding)
+
+	eudiWalletFinish(ctx, userSession, view, err)
+}
+
+// FirstFactorWalletDigitalCredentialsPOST finishes a log-in with the response of the Digital Credentials API.
+func FirstFactorWalletDigitalCredentialsPOST(ctx *middlewares.AutheliaCtx) {
+	var body bodyWalletDigitalCredentialsRequest
+
+	if err := ctx.ParseBody(&body); err != nil {
+		ctx.Logger.WithError(err).Error("Failed to parse the Digital Credentials API response")
+		ctx.SetStatusCode(fasthttp.StatusBadRequest)
+		ctx.SetJSONError(messageOperationFailed)
+
+		return
+	}
+
+	userSession, wallet, ok := eudiWalletPending(ctx)
+	if !ok {
+		return
+	}
+
+	view, err := ctx.Providers.EUDIWallet.HandleDigitalCredentialsResponse(ctx, wallet.TransactionID, wallet.Binding, body.Data)
 
 	eudiWalletFinish(ctx, userSession, view, err)
 }

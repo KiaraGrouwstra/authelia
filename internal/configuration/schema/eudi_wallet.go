@@ -16,6 +16,9 @@ const (
 	// EUDIWalletFlowCrossDevice is the flow where the browser shows a QR code to the wallet on another device.
 	EUDIWalletFlowCrossDevice = "cross_device"
 
+	// EUDIWalletFlowDigitalCredentials is the flow which uses the W3C Digital Credentials API of the browser.
+	EUDIWalletFlowDigitalCredentials = "digital_credentials"
+
 	// EUDIWalletMaximumLifetime is the longest permitted lifetime of a presentation transaction.
 	EUDIWalletMaximumLifetime = time.Hour
 )
@@ -25,7 +28,7 @@ type EUDIWallet struct {
 	Enable      bool     `koanf:"enable" yaml:"enable" toml:"enable" json:"enable" jsonschema:"default=false,title=Enable" jsonschema_description:"Enables log-in with an EU Digital Identity Wallet as a first factor."`
 	AutheliaURL *url.URL `koanf:"authelia_url" yaml:"authelia_url,omitempty" toml:"authelia_url,omitempty" json:"authelia_url,omitempty" jsonschema:"format=uri,title=Authelia URL" jsonschema_description:"The Authelia portal URL which offers the wallet log-in. It must be equal to the authelia_url of one session cookie."`
 
-	Flows    []string      `koanf:"flows" yaml:"flows,omitempty" toml:"flows,omitempty" json:"flows,omitempty" jsonschema:"enum=same_device,enum=cross_device,title=Flows" jsonschema_description:"The log-in flows to offer."`
+	Flows    []string      `koanf:"flows" yaml:"flows,omitempty" toml:"flows,omitempty" json:"flows,omitempty" jsonschema:"enum=same_device,enum=cross_device,enum=digital_credentials,title=Flows" jsonschema_description:"The log-in flows to offer."`
 	Lifetime time.Duration `koanf:"lifetime" yaml:"lifetime,omitempty" toml:"lifetime,omitempty" json:"lifetime,omitempty" jsonschema:"default=5 minutes,title=Lifetime" jsonschema_description:"The lifetime of a presentation transaction."`
 
 	CertificateChain X509CertificateChain    `koanf:"certificate_chain" yaml:"certificate_chain,omitempty" toml:"certificate_chain,omitempty" json:"certificate_chain,omitempty" jsonschema:"title=Certificate Chain" jsonschema_description:"The Relying Party access certificate chain which signs presentation requests."`
@@ -44,7 +47,7 @@ type EUDIWallet struct {
 
 // DefaultEUDIWalletConfiguration describes the default values for the EU Digital Identity Wallet configuration.
 var DefaultEUDIWalletConfiguration = EUDIWallet{
-	Flows:       []string{EUDIWalletFlowSameDevice, EUDIWalletFlowCrossDevice},
+	Flows:       []string{EUDIWalletFlowSameDevice, EUDIWalletFlowCrossDevice, EUDIWalletFlowDigitalCredentials},
 	Lifetime:    5 * time.Minute,
 	VCTValues:   []string{"urn:eudi:pid:1"},
 	MdocDocType: "eu.europa.ec.eudi.pid.1",

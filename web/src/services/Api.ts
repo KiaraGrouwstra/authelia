@@ -17,6 +17,7 @@ export const FirstFactorPasskeyPath = basePath + "/api/firstfactor/passkey";
 export const FirstFactorWalletBeginPath = basePath + "/api/firstfactor/wallet/begin";
 export const FirstFactorWalletStatusPath = basePath + "/api/firstfactor/wallet/status";
 export const FirstFactorWalletRedeemPath = basePath + "/api/firstfactor/wallet/redeem";
+export const FirstFactorWalletDigitalCredentialsPath = basePath + "/api/firstfactor/wallet/dcapi";
 export const FirstFactorReauthenticatePath = basePath + "/api/firstfactor/reauthenticate";
 
 export const TOTPRegistrationPath = basePath + "/api/secondfactor/totp/register";

@@ -328,6 +328,7 @@ func handlerMain(config *schema.Configuration, providers middlewares.Providers) 
 		r.POST("/api/firstfactor/wallet/begin", middlewareAPI(rateLimitWalletBegin(handlers.FirstFactorWalletBeginPOST)))
 		r.POST("/api/firstfactor/wallet/status", middlewareAPI(handlers.FirstFactorWalletStatusPOST))
 		r.POST("/api/firstfactor/wallet/redeem", middlewareAPI(handlers.FirstFactorWalletRedeemPOST))
+		r.POST("/api/firstfactor/wallet/dcapi", middlewareAPI(handlers.FirstFactorWalletDigitalCredentialsPOST))
 
 		// The wallet calls these endpoints without a session.
 		r.GET("/api/firstfactor/wallet/request/{id}", middlewareAPI(rateLimitWalletFacing(handlers.FirstFactorWalletRequestObject)))

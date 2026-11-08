@@ -41,6 +41,7 @@ eudi_wallet:
   flows:
     - 'same_device'
     - 'cross_device'
+    - 'digital_credentials'
   lifetime: '5 minutes'
   certificate_chain: |
     -----BEGIN CERTIFICATE-----
@@ -81,12 +82,14 @@ of one [session cookie](../session/introduction.md). The wallet log-in does not 
 
 ### flows
 
-{{< confkey type="list(string)" default="same_device, cross_device" required="no" >}}
+{{< confkey type="list(string)" default="same_device, cross_device, digital_credentials" required="no" >}}
 
 The log-in flows to offer:
 
 - `same_device`: the browser opens the wallet on the same device. The wallet returns the user to the browser.
 - `cross_device`: the browser shows a QR code. The user scans it with a wallet on another device.
+- `digital_credentials`: the browser calls the W3C Digital Credentials API. The portal offers this flow only in browsers
+  which have the API. In these browsers it replaces `same_device`.
 
 ### lifetime
 

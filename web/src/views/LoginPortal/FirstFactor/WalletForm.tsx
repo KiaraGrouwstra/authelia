@@ -19,10 +19,14 @@ import { useQueryParam } from "@hooks/QueryParam";
 import { SignInResponse } from "@services/SignIn";
 import {
     WalletMethodCrossDevice,
+    WalletMethodDigitalCredentials,
     WalletMethodSameDevice,
     WalletResponseCodeParam,
+    getDigitalCredential,
+    isDigitalCredentialsSupported,
     isWalletPending,
     postWalletBegin,
+    postWalletDigitalCredentials,
     postWalletRedeem,
     postWalletStatus,
 } from "@services/Wallet";
@@ -135,6 +139,14 @@ const WalletForm = function (props: Props) {
                     signal,
                 );
 
+                if (method === WalletMethodDigitalCredentials && begun.request) {
+                    const data = await getDigitalCredential(begun.request, signal);
+
+                    succeed(await postWalletDigitalCredentials(data, signal));
+
+                    return;
+                }
+
                 if (!begun.link) {
                     throw new Error("The server did not return a wallet link");
                 }
@@ -175,10 +187,12 @@ const WalletForm = function (props: Props) {
         stop();
     }, [stop]);
 
-    const sameDevice = props.flows.includes(WalletMethodSameDevice);
+    const digitalCredentials = props.flows.includes(WalletMethodDigitalCredentials) && isDigitalCredentialsSupported();
+    // The browser API replaces the redirect when it is available: the browser then proves the origin to the wallet.
+    const sameDevice = props.flows.includes(WalletMethodSameDevice) && !digitalCredentials;
     const crossDevice = props.flows.includes(WalletMethodCrossDevice);
 
-    if (!sameDevice && !crossDevice) return null;
+    if (!digitalCredentials && !sameDevice && !crossDevice) return null;
 
     return (
         <Fragment>
@@ -204,6 +218,18 @@ const WalletForm = function (props: Props) {
                 </div>
             ) : (
                 <div className="flex w-full flex-col gap-2">
+                    {digitalCredentials ? (
+                        <Button
+                            id="wallet-digital-credentials-button"
+                            variant="default"
+                            className="w-full"
+                            onClick={() => handleSignIn(WalletMethodDigitalCredentials)}
+                            disabled={props.disabled}
+                        >
+                            {translate("Sign in with your EU Digital Identity Wallet")}
+                            {loading ? <Spinner size={20} className="ml-2 h-5 w-5" /> : null}
+                        </Button>
+                    ) : null}
                     {sameDevice ? (
                         <Button
                             id="wallet-same-device-button"

@@ -1380,7 +1380,8 @@
             "type": "string",
             "enum": [
               "same_device",
-              "cross_device"
+              "cross_device",
+              "digital_credentials"
             ]
           },
           "type": "array",

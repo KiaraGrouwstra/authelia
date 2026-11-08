@@ -296,6 +296,18 @@ func (p *Provider) Begin(ctx context.Context, binding string, sameDevice bool) (
 	return begun.ID, begun.Link, nil
 }
 
+// BeginDigitalCredentials starts a Digital Credentials API presentation and returns the transaction ID and the request
+// for the browser.
+func (p *Provider) BeginDigitalCredentials(ctx context.Context, binding string) (id string, request verifier.DCAPIRequest, err error) {
+	var begun verifier.BegunDCAPI
+
+	if begun, err = p.transactions.BeginDCAPI(ctx, p.query, binding, p.origin); err != nil {
+		return "", request, err
+	}
+
+	return begun.ID, begun.Request, nil
+}
+
 // Lookup returns the state of a transaction for the browser it is bound to.
 func (p *Provider) Lookup(ctx context.Context, id, binding string) (verifier.TransactionView, error) {
 	return p.transactions.Lookup(ctx, id, binding)
@@ -304,6 +316,11 @@ func (p *Provider) Lookup(ctx context.Context, id, binding string) (verifier.Tra
 // Redeem exchanges the response code of the same-device flow for the state of the transaction.
 func (p *Provider) Redeem(ctx context.Context, responseCode, binding string) (verifier.TransactionView, error) {
 	return p.transactions.Redeem(ctx, responseCode, binding)
+}
+
+// HandleDigitalCredentialsResponse verifies the response of the Digital Credentials API.
+func (p *Provider) HandleDigitalCredentialsResponse(ctx context.Context, id, binding string, data []byte) (verifier.TransactionView, error) {
+	return p.transactions.HandleDCAPIResponse(ctx, id, binding, data)
 }
 
 // Close ends a transaction.

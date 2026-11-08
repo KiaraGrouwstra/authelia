@@ -14,11 +14,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"math/big"
+	"net/http"
 	"net/url"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/idfoundry/fapigo/fapihttp"
 	oid4vci "github.com/idfoundry/oid4vcgo"
 	"github.com/idfoundry/oid4vcgo/credential/sdjwtvc"
 	"github.com/idfoundry/oid4vcgo/verifier"
@@ -127,7 +129,7 @@ func newTestProvider(t *testing.T, trusted *testAuthority) *Provider {
 	provider, err := NewProvider(&schema.EUDIWallet{
 		Enable:                 true,
 		AutheliaURL:            portal,
-		Flows:                  []string{schema.EUDIWalletFlowSameDevice, schema.EUDIWalletFlowCrossDevice},
+		Flows:                  []string{schema.EUDIWalletFlowSameDevice, schema.EUDIWalletFlowCrossDevice, schema.EUDIWalletFlowDigitalCredentials},
 		Lifetime:               time.Minute,
 		CertificateChain:       schema.NewX509CertificateChainFromCerts([]*x509.Certificate{leaf}),
 		PrivateKey:             key,
@@ -179,6 +181,23 @@ func newTestRequestCtx() *fasthttp.RequestCtx {
 	return ctx
 }
 
+func newTestHolder(t *testing.T) *wallet.Wallet {
+	t.Helper()
+
+	holder, err := wallet.New(
+		wallet.Config{
+			Assurance:       wallet.AssuranceDevelopment,
+			ProofSigningAlg: oid4vci.ES256,
+			VerifierTrust:   acceptingTrust{},
+			Fetch:           fapihttp.Config{MaxResponseBytes: 1 << 20, RequestTimeout: time.Second, MaxRedirects: 1},
+		},
+		wallet.Dependencies{HTTP: http.DefaultClient, Clock: wallet.ClockFunc(time.Now), Random: rand.Reader},
+	)
+	require.NoError(t, err)
+
+	return holder
+}
+
 func fetchTestRequest(t *testing.T, provider *Provider, link string) wallet.AuthorizationRequest {
 	t.Helper()
 
@@ -207,13 +226,14 @@ func fetchTestRequest(t *testing.T, provider *Provider, link string) wallet.Auth
 	return request
 }
 
-func buildTestResponse(t *testing.T, request wallet.AuthorizationRequest, credential wallet.HeldCredential) string {
+func buildTestResponse(t *testing.T, request wallet.AuthorizationRequest, credential wallet.HeldCredential, origin string) string {
 	t.Helper()
 
 	token, err := wallet.PresentCredentials(context.Background(), wallet.PresentationRequest{
 		Query:                 request.Query,
 		Credentials:           []wallet.HeldCredential{credential},
 		Audience:              request.ClientID,
+		Origin:                origin,
 		Nonce:                 request.Nonce,
 		ResponseURI:           request.ResponseURI,
 		ResponseEncryptionKey: request.ResponseEncryptionKey,
@@ -252,7 +272,7 @@ func presentSameDevice(t *testing.T, provider *Provider, authority *testAuthorit
 	require.NoError(t, err)
 
 	request := fetchTestRequest(t, provider, link)
-	reply := postTestResponse(provider, request, buildTestResponse(t, request, newTestCredential(t, authority)))
+	reply := postTestResponse(provider, request, buildTestResponse(t, request, newTestCredential(t, authority), ""))
 	require.Equal(t, fasthttp.StatusOK, reply.Response.StatusCode(), string(reply.Response.Body()))
 
 	var body struct {
@@ -321,7 +341,7 @@ func TestProviderCrossDevice(t *testing.T) {
 	require.NotEqual(t, verifier.TransactionDone, view.Status)
 
 	request := fetchTestRequest(t, provider, link)
-	reply := postTestResponse(provider, request, buildTestResponse(t, request, newTestCredential(t, authority)))
+	reply := postTestResponse(provider, request, buildTestResponse(t, request, newTestCredential(t, authority), ""))
 	require.Equal(t, fasthttp.StatusOK, reply.Response.StatusCode(), string(reply.Response.Body()))
 	assert.NotContains(t, string(reply.Response.Body()), "response_code")
 
@@ -337,6 +357,57 @@ func TestProviderCrossDevice(t *testing.T) {
 	assert.Equal(t, testEmail, email)
 }
 
+func TestProviderDigitalCredentials(t *testing.T) {
+	authority := newTestAuthority(t, "issuer root")
+	provider := newTestProvider(t, authority)
+	ctx := context.Background()
+
+	id, begun, err := provider.BeginDigitalCredentials(ctx, testBinding)
+	require.NoError(t, err)
+
+	data, err := json.Marshal(begun.Data)
+	require.NoError(t, err)
+
+	request, err := newTestHolder(t).ParseDCAPIRequestData(begun.Protocol, data, testOrigin)
+	require.NoError(t, err)
+
+	response, err := json.Marshal(map[string]string{"response": buildTestResponse(t, request, newTestCredential(t, authority), testOrigin)})
+	require.NoError(t, err)
+
+	view, err := provider.HandleDigitalCredentialsResponse(ctx, id, testBinding, response)
+	require.NoError(t, err)
+	require.Equal(t, verifier.TransactionDone, view.Status)
+
+	email, err := Email(view.Result)
+	require.NoError(t, err)
+	assert.Equal(t, testEmail, email)
+}
+
+func TestProviderDigitalCredentialsRefusesAnotherOrigin(t *testing.T) {
+	authority := newTestAuthority(t, "issuer root")
+	provider := newTestProvider(t, authority)
+	ctx := context.Background()
+
+	id, begun, err := provider.BeginDigitalCredentials(ctx, testBinding)
+	require.NoError(t, err)
+
+	data, err := json.Marshal(begun.Data)
+	require.NoError(t, err)
+
+	// A wallet refuses this origin at parsing, so the test parses with the right one to reach the check of the verifier.
+	request, err := newTestHolder(t).ParseDCAPIRequestData(begun.Protocol, data, testOrigin)
+	require.NoError(t, err)
+
+	response, err := json.Marshal(map[string]string{"response": buildTestResponse(t, request, newTestCredential(t, authority), "https://evil.example.com")})
+	require.NoError(t, err)
+
+	view, err := provider.HandleDigitalCredentialsResponse(ctx, id, testBinding, response)
+	if err == nil {
+		assert.NotEqual(t, verifier.TransactionDone, view.Status)
+		assert.Nil(t, view.Result)
+	}
+}
+
 func TestProviderRefusesAnUntrustedIssuer(t *testing.T) {
 	provider := newTestProvider(t, newTestAuthority(t, "issuer root"))
 	ctx := context.Background()
@@ -345,7 +416,7 @@ func TestProviderRefusesAnUntrustedIssuer(t *testing.T) {
 	require.NoError(t, err)
 
 	request := fetchTestRequest(t, provider, link)
-	reply := postTestResponse(provider, request, buildTestResponse(t, request, newTestCredential(t, newTestAuthority(t, "other root"))))
+	reply := postTestResponse(provider, request, buildTestResponse(t, request, newTestCredential(t, newTestAuthority(t, "other root")), ""))
 	assert.NotEqual(t, fasthttp.StatusOK, reply.Response.StatusCode())
 
 	view, err := provider.Lookup(ctx, id, testBinding)
