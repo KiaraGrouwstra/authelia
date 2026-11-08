@@ -435,6 +435,56 @@
     "env": "AUTHELIA_DUO_API_SECRET_KEY_FILE"
   },
   {
+    "path": "eudi_wallet.authelia_url",
+    "secret": false,
+    "env": "AUTHELIA_EUDI_WALLET_AUTHELIA_URL"
+  },
+  {
+    "path": "eudi_wallet.certificate_chain",
+    "secret": true,
+    "env": "AUTHELIA_EUDI_WALLET_CERTIFICATE_CHAIN_FILE"
+  },
+  {
+    "path": "eudi_wallet.disable_revocation_check",
+    "secret": false,
+    "env": "AUTHELIA_EUDI_WALLET_DISABLE_REVOCATION_CHECK"
+  },
+  {
+    "path": "eudi_wallet.disable_status_check",
+    "secret": false,
+    "env": "AUTHELIA_EUDI_WALLET_DISABLE_STATUS_CHECK"
+  },
+  {
+    "path": "eudi_wallet.enable",
+    "secret": false,
+    "env": "AUTHELIA_EUDI_WALLET_ENABLE"
+  },
+  {
+    "path": "eudi_wallet.flows",
+    "secret": false,
+    "env": "AUTHELIA_EUDI_WALLET_FLOWS"
+  },
+  {
+    "path": "eudi_wallet.lifetime",
+    "secret": false,
+    "env": "AUTHELIA_EUDI_WALLET_LIFETIME"
+  },
+  {
+    "path": "eudi_wallet.mdoc_doc_type",
+    "secret": false,
+    "env": "AUTHELIA_EUDI_WALLET_MDOC_DOC_TYPE"
+  },
+  {
+    "path": "eudi_wallet.private_key",
+    "secret": true,
+    "env": "AUTHELIA_EUDI_WALLET_PRIVATE_KEY_FILE"
+  },
+  {
+    "path": "eudi_wallet.vct_values",
+    "secret": false,
+    "env": "AUTHELIA_EUDI_WALLET_VCT_VALUES"
+  },
+  {
     "path": "identity_providers.oidc",
     "secret": false,
     "env": "AUTHELIA_IDENTITY_PROVIDERS_OIDC"

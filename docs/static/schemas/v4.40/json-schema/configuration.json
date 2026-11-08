@@ -188,7 +188,31 @@
             "MOVE",
             "PROPFIND",
             "PROPPATCH",
-            "UNLOCK"
+            "UNLOCK",
+            "ACL",
+            "BASELINE-CONTROL",
+            "BIND",
+            "CHECKIN",
+            "CHECKOUT",
+            "LABEL",
+            "LINK",
+            "MERGE",
+            "MKACTIVITY",
+            "MKCALENDAR",
+            "MKREDIRECTREF",
+            "MKWORKSPACE",
+            "ORDERPATCH",
+            "PRI",
+            "QUERY",
+            "REBIND",
+            "REPORT",
+            "SEARCH",
+            "UNBIND",
+            "UNCHECKOUT",
+            "UNLINK",
+            "UPDATE",
+            "UPDATEREDIRECTREF",
+            "VERSION-CONTROL"
           ]
         },
         {
@@ -210,7 +234,31 @@
               "MOVE",
               "PROPFIND",
               "PROPPATCH",
-              "UNLOCK"
+              "UNLOCK",
+              "ACL",
+              "BASELINE-CONTROL",
+              "BIND",
+              "CHECKIN",
+              "CHECKOUT",
+              "LABEL",
+              "LINK",
+              "MERGE",
+              "MKACTIVITY",
+              "MKCALENDAR",
+              "MKREDIRECTREF",
+              "MKWORKSPACE",
+              "ORDERPATCH",
+              "PRI",
+              "QUERY",
+              "REBIND",
+              "REPORT",
+              "SEARCH",
+              "UNBIND",
+              "UNCHECKOUT",
+              "UNLINK",
+              "UPDATE",
+              "UPDATEREDIRECTREF",
+              "VERSION-CONTROL"
             ]
           },
           "type": "array",
@@ -1192,6 +1240,11 @@
           "title": "WebAuthn",
           "description": "WebAuthn Configuration."
         },
+        "eudi_wallet": {
+          "$ref": "#/$defs/EUDIWallet",
+          "title": "EU Digital Identity Wallet",
+          "description": "EU Digital Identity Wallet log-in Configuration"
+        },
         "password_policy": {
           "$ref": "#/$defs/PasswordPolicy",
           "title": "Password Policy",
@@ -1218,6 +1271,12 @@
           "title": "The default redirection URL",
           "description": "Deprecated: Use the session cookies option with the same name instead.",
           "deprecated": true
+        },
+        "$schema": {
+          "type": "string",
+          "format": "uri",
+          "title": "JSON Schema",
+          "description": "The JSON Schema which applies to this file."
         }
       },
       "additionalProperties": false,
@@ -1301,6 +1360,115 @@
       "additionalProperties": false,
       "type": "object",
       "description": "DuoAPI represents the configuration related to Duo API."
+    },
+    "EUDIWallet": {
+      "properties": {
+        "enable": {
+          "type": "boolean",
+          "title": "Enable",
+          "description": "Enables log-in with an EU Digital Identity Wallet as a first factor.",
+          "default": false
+        },
+        "authelia_url": {
+          "type": "string",
+          "format": "uri",
+          "title": "Authelia URL",
+          "description": "The Authelia portal URL which offers the wallet log-in. It must be equal to the authelia_url of one session cookie."
+        },
+        "flows": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "same_device"
+            ]
+          },
+          "type": "array",
+          "title": "Flows",
+          "description": "The log-in flows to offer."
+        },
+        "lifetime": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?))(\\s*(\\s+and\\s+)?\\d+\\s*(y|M|w|d|h|m|s|ms|((year|month|week|day|hour|minute|second|millisecond)s?)))*$"
+            },
+            {
+              "type": "integer",
+              "description": "The duration in seconds"
+            }
+          ],
+          "title": "Lifetime",
+          "description": "The lifetime of a presentation transaction."
+        },
+        "certificate_chain": {
+          "$ref": "#/$defs/X509CertificateChain",
+          "title": "Certificate Chain",
+          "description": "The Relying Party access certificate chain which signs presentation requests."
+        },
+        "private_key": {
+          "type": "string",
+          "pattern": "^-{5}BEGIN ((RSA|EC) )?PRIVATE KEY-{5}\\n([a-zA-Z0-9\\/+]{1,64}\\n)+([a-zA-Z0-9\\/+]{1,64}[=]{0,2})\\n-{5}END ((RSA|EC) )?PRIVATE KEY-{5}\\n?$",
+          "title": "Private Key",
+          "description": "The P-256 private key of the leaf certificate in the certificate chain."
+        },
+        "trusted_issuer_roots": {
+          "items": {
+            "$ref": "#/$defs/X509CertificateChain"
+          },
+          "type": "array",
+          "title": "Trusted Issuer Roots",
+          "description": "The root certificates of the Person Identification Data providers to trust."
+        },
+        "crl_issuers": {
+          "items": {
+            "$ref": "#/$defs/X509CertificateChain"
+          },
+          "type": "array",
+          "title": "CRL Issuers",
+          "description": "The certificates which may sign the certificate revocation lists. The default is the trusted issuer roots."
+        },
+        "crl_urls": {
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": "array",
+          "title": "CRL URLs",
+          "description": "The certificate revocation lists to check the certificates of the issuers against."
+        },
+        "disable_revocation_check": {
+          "type": "boolean",
+          "title": "Disable Revocation Check",
+          "description": "Disables the certificate revocation check of the issuers.",
+          "default": false
+        },
+        "disable_status_check": {
+          "type": "boolean",
+          "title": "Disable Status Check",
+          "description": "Disables the check of the credential status list.",
+          "default": false
+        },
+        "vct_values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "VCT Values",
+          "description": "The SD-JWT VC types to accept as Person Identification Data.",
+          "default": [
+            "urn:eudi:pid:1"
+          ]
+        },
+        "mdoc_doc_type": {
+          "type": "string",
+          "title": "mdoc Document Type",
+          "description": "The ISO mdoc document type to accept as Person Identification Data.",
+          "default": "eu.europa.ec.eudi.pid.1"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "EUDIWallet represents the EU Digital Identity Wallet log-in configuration."
     },
     "IdentityProviders": {
       "properties": {
@@ -2967,6 +3135,12 @@
           "title": "Format",
           "description": "The Format of Log messages."
         },
+        "disable_timestamp": {
+          "type": "boolean",
+          "title": "Disable Timestamp",
+          "description": "Disables the timestamp in Log messages.",
+          "default": false
+        },
         "file_path": {
           "type": "string",
           "title": "File Path",
@@ -3494,6 +3668,14 @@
           "description": "Enables the rate limiter for this endpoint.",
           "default": true
         },
+        "ipv6_mask": {
+          "type": "integer",
+          "maximum": 128,
+          "minimum": 48,
+          "title": "IPv6 Mask",
+          "description": "The prefix length used to group IPv6 addresses into a single rate limit bucket.",
+          "default": 64
+        },
         "buckets": {
           "items": {
             "$ref": "#/$defs/ServerEndpointRateLimitBucket"
@@ -3657,6 +3839,16 @@
           "title": "Implementation",
           "description": "The specific Authorization implementation to use for this endpoint."
         },
+        "headers": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/$defs/ServerEndpointsAuthzHeader"
+            }
+          },
+          "type": "object",
+          "title": "Headers",
+          "description": "The specific Authorization headers to use for this endpoint."
+        },
         "authn_strategies": {
           "items": {
             "$ref": "#/$defs/ServerEndpointsAuthzAuthnStrategy"
@@ -3717,6 +3909,21 @@
       "additionalProperties": false,
       "type": "object",
       "description": "ServerEndpointsAuthzAuthnStrategy is the Authz endpoints configuration for the HTTP server."
+    },
+    "ServerEndpointsAuthzHeader": {
+      "properties": {
+        "user_attribute": {
+          "type": "string",
+          "title": "User Attribute",
+          "description": "The user attribute to use for the header."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "user_attribute"
+      ],
+      "description": "ServerEndpointsAuthzHeader is the Authz endpoint response header configuration for the HTTP server."
     },
     "ServerHeaders": {
       "properties": {
